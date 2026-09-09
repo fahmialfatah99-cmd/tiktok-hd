@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Video, Settings, CheckCircle, AlertTriangle, Info, Sparkles, Zap, Shield, FileVideo, ChevronDown, ChevronUp, Copy, ExternalLink } from 'lucide-react';
+import { Upload, Video, Settings, CheckCircle, Sparkles, Zap, Shield, Wand2, Palette } from 'lucide-react';
 import VideoUploader from './components/VideoUploader';
 import QualityGuide from './components/QualityGuide';
 import UploadChecklist from './components/UploadChecklist';
 import VideoInfo from './components/VideoInfo';
 import SettingsPanel from './components/SettingsPanel';
 import FFmpegGuide from './components/FFmpegGuide';
+import FFmpegGenerator from './components/FFmpegGenerator';
+import PresetTemplate from './components/PresetTemplate';
 
-type Tab = 'upload' | 'guide' | 'checklist' | 'ffmpeg';
+type Tab = 'upload' | 'generate' | 'preset' | 'guide' | 'checklist' | 'ffmpeg';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('upload');
@@ -16,10 +18,12 @@ export default function App() {
   const [videoUrl, setVideoUrl] = useState<string>('');
 
   const tabs = [
-    { id: 'upload' as Tab, label: 'Upload & Analisis', icon: Upload },
-    { id: 'guide' as Tab, label: 'Panduan Kualitas', icon: Video },
-    { id: 'checklist' as Tab, label: 'Checklist Upload', icon: CheckCircle },
-    { id: 'ffmpeg' as Tab, label: 'FFmpeg Command', icon: Settings },
+    { id: 'upload' as Tab, label: 'Upload & Analisis', icon: Upload, badge: null },
+    { id: 'generate' as Tab, label: 'Auto Generate', icon: Wand2, badge: 'NEW' },
+    { id: 'preset' as Tab, label: 'Custom Preset', icon: Palette, badge: 'NEW' },
+    { id: 'guide' as Tab, label: 'Panduan', icon: Video, badge: null },
+    { id: 'checklist' as Tab, label: 'Checklist', icon: CheckCircle, badge: null },
+    { id: 'ffmpeg' as Tab, label: 'FFmpeg', icon: Settings, badge: null },
   ];
 
   const handleVideoSelect = (file: File) => {
@@ -64,16 +68,17 @@ export default function App() {
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
             Tools lengkap untuk memastikan video kamu di-upload ke TikTok dengan kualitas terbaik.
-            Analisis video, dapatkan rekomendasi settings, dan ikuti panduan step-by-step.
+            Auto-generate FFmpeg command, custom preset, dan panduan step-by-step.
           </p>
         </motion.div>
 
         {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           {[
-            { icon: Zap, title: 'Analisis Otomatis', desc: 'Cek resolusi, bitrate, codec video kamu', color: 'from-yellow-400 to-orange-500' },
-            { icon: Sparkles, title: 'Rekomendasi Settings', desc: 'Dapatkan setting optimal untuk TikTok', color: 'from-pink-400 to-red-500' },
-            { icon: Shield, title: 'Kualitas Terjaga', desc: 'Pastikan video tetap HD setelah upload', color: 'from-cyan-400 to-blue-500' },
+            { icon: Zap, title: 'Analisis Otomatis', desc: 'Cek resolusi, bitrate, codec video', color: 'from-yellow-400 to-orange-500' },
+            { icon: Wand2, title: 'Auto Generate', desc: 'Generate FFmpeg command otomatis', color: 'from-purple-400 to-pink-500' },
+            { icon: Palette, title: 'Custom Preset', desc: 'Buat & kelola preset encoding', color: 'from-cyan-400 to-blue-500' },
+            { icon: Shield, title: 'Kualitas Terjaga', desc: 'Pastikan video tetap HD', color: 'from-green-400 to-emerald-500' },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -99,14 +104,19 @@ export default function App() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
+              className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
                 activeTab === tab.id
                   ? 'bg-gradient-to-r from-pink-500/20 to-cyan-500/20 text-white border border-white/20'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
             >
               <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <span className="hidden sm:inline">{tab.label}</span>
+              {tab.badge && (
+                <span className="absolute -top-1 -right-1 text-[9px] bg-gradient-to-r from-purple-500 to-pink-500 text-white px-1.5 py-0.5 rounded-full font-bold">
+                  {tab.badge}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -130,6 +140,12 @@ export default function App() {
                   <SettingsPanel />
                 </div>
               </div>
+            )}
+            {activeTab === 'generate' && (
+              <FFmpegGenerator videoFile={videoFile} videoUrl={videoUrl} />
+            )}
+            {activeTab === 'preset' && (
+              <PresetTemplate />
             )}
             {activeTab === 'guide' && <QualityGuide />}
             {activeTab === 'checklist' && <UploadChecklist />}
